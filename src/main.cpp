@@ -21,6 +21,7 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <string>
 
 // Update these with values suitable for your network.
 
@@ -34,18 +35,47 @@ unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE	(50)
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
-/*Salidas hacia los motores*/ 
+/*Salidas para los motores*/ 
 int Left_IN1 = D0; 
-int Left_IN2 = D1; 
+int Left_IN2 = D1;
+int pwm1 = D2;  
 int RIGH_IN3 = D3; 
 int RIGH_IN4 = D4; 
+int pwm2 = D5; 
+int slider2_int = 50; 
+int slider1_int = 50;  
 
+int get_velocidad_adelante(int vel){
+int velocidad; 
+velocidad = (vel - 49.98038446449588 )/ 0.1961553550411926; 
+return velocidad ;  
+}
 
-void move_back(){
-  digitalWrite(Left_IN1,LOW);
-  digitalWrite(Left_IN2,HIGH);
-  digitalWrite(RIGH_IN3,HIGH);
-  digitalWrite(RIGH_IN4,LOW);
+int get_velocidad_back(int vel){
+int velocidad; 
+velocidad = (vel -39.01490780698313 )/ -0.1490780698313064;
+return velocidad ;  
+}
+
+int get_sentido_adelante_derecha(int slider2_int){
+ int sentido_der = 0; 
+ sentido_der = (slider2_int - 50.98077677520596 )/ 0.19223224794036878; 
+ return sentido_der;
+}
+
+int  get_sentido_adelante_izquierda(int slider2_int){
+ int sentido = 0; 
+ sentido = (slider2_int - 40.153543307086615 )/ -0.15354330708661418; 
+ return sentido;
+}
+
+void move_back(int vel, int sentido_derecha, int sentido_izquierda){
+  digitalWrite(Left_IN1,HIGH);
+  digitalWrite(Left_IN2,LOW);
+  digitalWrite(RIGH_IN3,LOW);
+  digitalWrite(RIGH_IN4,HIGH);
+  analogWrite(pwm1,vel - sentido_derecha);
+  analogWrite(pwm2,vel - sentido_izquierda);
 }
 
 void stop(){
@@ -55,11 +85,41 @@ void stop(){
   digitalWrite(RIGH_IN4,LOW);
 }
 
-void tatakae(){
-  digitalWrite(Left_IN1,HIGH);
-  digitalWrite(Left_IN2,LOW);
-  digitalWrite(RIGH_IN3,LOW);
-  digitalWrite(RIGH_IN4,HIGH);
+void tatakae(int vel, int sentido_derecha, int sentido_izquierda){
+  digitalWrite(Left_IN1,LOW);
+  digitalWrite(Left_IN2,HIGH);
+  digitalWrite(RIGH_IN3,HIGH);
+  digitalWrite(RIGH_IN4,LOW);
+  analogWrite(pwm1,vel - sentido_derecha);
+  analogWrite(pwm2,vel - sentido_izquierda);
+}
+
+int move_righ(){
+  int sentido_derecha = get_sentido_adelante_derecha(slider2_int);  
+  Serial.print("Move righ"); 
+  return sentido_derecha; 
+}
+
+int move_left(){  
+  int sentido_izquierda = get_sentido_adelante_izquierda(slider2_int); 
+  Serial.print("Move izda"); 
+  return sentido_izquierda;
+}
+
+void move_forward(){
+    int sentido_derecha = 0;
+    int sentido_izquierda = 0; 
+    int velocidad1 = get_velocidad_adelante(slider1_int);  
+    tatakae(velocidad1, sentido_derecha,sentido_izquierda);  
+    Serial.print("Move forward"); 
+}
+
+void move_back1 ( ){
+    int sentido_derecha = 0;
+    int sentido_izquierda = 0; 
+    int velocidad1 = get_velocidad_back(slider1_int);  
+    move_back(velocidad1, sentido_derecha,sentido_izquierda);  
+    Serial.print("Move back"); 
 }
 
 
@@ -88,6 +148,7 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+  
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -95,26 +156,75 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println((char)payload[i]);
   }
   
-    // // Switch on the LED if an 1 was received as first character
-  // if ((char)payload[0] == '1') {
-  //   digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
-  //   // but actually the LED is on; this is because
-  //   // it is active low on the ESP-01)
-  // } else {
-  //   digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
-  // }
+  /*Se inicia la conversión de char a un número entero */
+ 
   
-  if ((char)payload[0] == '1'){
-   move_back();
-  }
-  else if ((char)payload[0] == '2'){
-    stop();
-  }
-  else if ((char)payload[0] == '3'){
-    tatakae();
-  }
-}
+  String topic_string = topic; 
 
+/*Se conveierte cada caracter a una cadena */
+  if (topic_string == "Coche"){
+   String  concatenacion = "";  // Inicialización de variables String
+   String s1 = "123";
+   for (int i = 0; i < length; i++){
+      s1 = String((char)payload[i]) ; 
+      concatenacion = concatenacion + s1;  
+      Serial.print("String concatenación: ");
+      Serial.println(concatenacion); 
+    }
+    //Convierte el numero en int 
+    slider1_int = concatenacion.toInt();
+  }
+
+  if(topic_string == "Coche/Sentido"){ 
+   String concatenacion_2 = "";
+   String s2 = "123";  
+   for (int i = 0; i < length; i++){
+      s2 = String((char)payload[i]) ; 
+      concatenacion_2 = concatenacion_2 + s2;  
+      Serial.print("String concatenación_2: ");
+      Serial.println(concatenacion_2); 
+    }
+    slider2_int = concatenacion_2.toInt();
+  }
+  /*Pritn*/
+  Serial.print("Slider2_int:");
+  Serial.println(slider2_int);
+  Serial.print("Slider1_int:"); 
+  Serial.println(slider1_int); 
+  /**/
+    //Move righ
+  if (slider1_int > 50 && slider2_int > 50 ){
+    int sentido_izquierda = 0; 
+    int sentido_derecha = move_righ();
+    int velocidad1 = get_velocidad_adelante(slider1_int);   
+    tatakae(velocidad1, sentido_derecha, sentido_izquierda);
+  }  //Move left
+  else if (slider1_int > 50 && slider2_int < 40){
+    int sentido_derecha = 0;     
+    int sentido_izquierda = move_left();
+    int velocidad1 = get_velocidad_adelante(slider1_int);  
+    tatakae(velocidad1, sentido_derecha,sentido_izquierda); 
+  } //Back and righ
+  else if (slider1_int < 40 && slider2_int > 50 ){
+    int sentido_izquierda = 0; 
+    int sentido_derecha = move_righ(); 
+    int velocidad1 = get_velocidad_back(slider1_int); 
+    move_back(velocidad1, sentido_derecha, sentido_izquierda); 
+  }//Back and lefth
+  else if ( slider1_int < 40 && slider2_int < 40 ) {
+    int sentido_derecha = 0; 
+    int sentido_izquierda = move_left(); 
+    int velocidad1 = get_velocidad_back(slider1_int); 
+    move_back(velocidad1, sentido_derecha, sentido_izquierda); 
+    }
+  else if(slider1_int < 40 ){
+    move_back1(); 
+  }
+  else{
+   move_forward(); 
+  }
+  
+}
 
 void reconnect() {
   // Loop until we're reconnected
@@ -130,6 +240,7 @@ void reconnect() {
       client.publish("hi", "hello world");
       // ... and resubscribe
       client.subscribe("Coche");
+      client.subscribe("Coche/Sentido");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -146,11 +257,17 @@ void setup() {
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+  /*Pines de salida*/
   pinMode(D0,OUTPUT);
+  pinMode(D1,OUTPUT);
+  pinMode(D3,OUTPUT);
+  pinMode(D4,OUTPUT);
+  /*PWM*/
+  pinMode(D2,OUTPUT); 
+  pinMode(D5,OUTPUT);
 }
 
 void loop() {
-  
   if (!client.connected()) {
     reconnect();
   }
