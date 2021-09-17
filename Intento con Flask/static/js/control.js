@@ -33,3 +33,20 @@ $("#Righ_andleft").on("input",function(){
     })
 })
 
+$("#Media_vuelta").on("input",function(){
+    $.ajax({
+        url: '/Media_vuelta',
+        type: 'POST',
+        data: {
+        media_vuelta: $('#Media_vuelta').val()
+        },
+    
+    success: function(response){
+        console.log(response);
+        },
+        error: function(error){
+        console.log(error);
+        }
+    })
+})
+

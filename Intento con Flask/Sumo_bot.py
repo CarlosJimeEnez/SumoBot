@@ -22,8 +22,9 @@ def index():
 
 @app.route("/GO", methods = ["POST"])
 def control(): 
-    velocidad = request.form["Button"]
+    velocidad= request.form["Button"]
     send_valor_1(velocidad)
+    
     return Response(status=200)
 
 @app.route("/Righ_andLeft", methods = ["POST"])
@@ -32,6 +33,10 @@ def Righ_andLeft():
     send_valor_2(Righ_andLeft)
     return Response(status = 200)
 
+@app.route("/Media_vuelta",methods = ['POST'])
+def Media_vuelta(): 
+    Media_vuelta = request.form["media_vuelta"]
+    print(f"{Media_vuelta}")
 
 if __name__ == "__main__": 
     app.debug = True 

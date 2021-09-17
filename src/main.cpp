@@ -41,9 +41,14 @@ int Left_IN2 = D1;
 int pwm1 = D2;  
 int RIGH_IN3 = D3; 
 int RIGH_IN4 = D4; 
-int pwm2 = D5; 
+int pwm2 = D5;
+int inflarrojo_azul = D7;  
+int inflarrojo_negro = D6;
+
 int slider2_int = 50; 
 int slider1_int = 50;  
+int inflarrojo_Izq = 0;
+int inflarrojo_Der = 0; 
 
 int get_velocidad_adelante(int vel){
 int velocidad; 
@@ -59,7 +64,7 @@ return velocidad ;
 
 int get_sentido_adelante_derecha(int slider2_int){
  int sentido_der = 0; 
- sentido_der = (slider2_int - 50.98077677520596 )/ 0.19223224794036878; 
+ sentido_der = (slider2_int -59.9843075715967 )/ 0.1569242840329541; 
  return sentido_der;
 }
 
@@ -85,13 +90,40 @@ void stop(){
   digitalWrite(RIGH_IN4,LOW);
 }
 
-void tatakae(int vel, int sentido_derecha, int sentido_izquierda){
-  digitalWrite(Left_IN1,LOW);
-  digitalWrite(Left_IN2,HIGH);
-  digitalWrite(RIGH_IN3,HIGH);
-  digitalWrite(RIGH_IN4,LOW);
-  analogWrite(pwm1,vel - sentido_derecha);
-  analogWrite(pwm2,vel - sentido_izquierda);
+void tatakae(int vel, int sentido_derecha, int sentido_izquierda, int inflarrojo){
+  if(inflarrojo == inflarrojo_Izq && inflarrojo == inflarrojo_Der ){
+    digitalWrite(Left_IN1,LOW);
+    digitalWrite(Left_IN2,HIGH);
+    digitalWrite(RIGH_IN3,HIGH);
+    digitalWrite(RIGH_IN4,LOW);
+    analogWrite(pwm1,vel - sentido_derecha);
+    analogWrite(pwm2,vel - sentido_izquierda);
+  } 
+  else if( inflarrojo == inflarrojo_Der && inflarrojo != inflarrojo_Izq){
+    digitalWrite(Left_IN1,LOW);
+    digitalWrite(Left_IN2,HIGH);
+    digitalWrite(RIGH_IN3,HIGH);
+    digitalWrite(RIGH_IN4,LOW);
+    analogWrite(pwm1,vel - sentido_derecha);
+    analogWrite(pwm2,vel - sentido_izquierda);
+  }
+  else if( inflarrojo == inflarrojo_Izq && inflarrojo != inflarrojo_Der){
+    digitalWrite(Left_IN1,LOW);
+    digitalWrite(Left_IN2,HIGH);
+    digitalWrite(RIGH_IN3,HIGH);
+    digitalWrite(RIGH_IN4,LOW);
+    analogWrite(pwm1,vel - sentido_derecha);
+    analogWrite(pwm2,vel - sentido_izquierda);
+  }
+  else{
+    int velocidad = 255; 
+    digitalWrite(Left_IN1,HIGH);
+    digitalWrite(Left_IN2,LOW);
+    digitalWrite(RIGH_IN3,LOW);
+    digitalWrite(RIGH_IN4,HIGH);
+    analogWrite(pwm1,velocidad);
+    analogWrite(pwm2,velocidad);
+  }
 }
 
 int move_righ(){
@@ -107,10 +139,11 @@ int move_left(){
 }
 
 void move_forward(){
+    int inflarrojo = 0;
     int sentido_derecha = 0;
     int sentido_izquierda = 0; 
     int velocidad1 = get_velocidad_adelante(slider1_int);  
-    tatakae(velocidad1, sentido_derecha,sentido_izquierda);  
+    tatakae(velocidad1, sentido_derecha,sentido_izquierda,inflarrojo);  
     Serial.print("Move forward"); 
 }
 
@@ -155,12 +188,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     Serial.println((char)payload[i]);
   }
-  
-  /*Se inicia la conversión de char a un número entero */
- 
-  
   String topic_string = topic; 
-
 /*Se conveierte cada caracter a una cadena */
   if (topic_string == "Coche"){
    String  concatenacion = "";  // Inicialización de variables String
@@ -168,8 +196,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
    for (int i = 0; i < length; i++){
       s1 = String((char)payload[i]) ; 
       concatenacion = concatenacion + s1;  
-      Serial.print("String concatenación: ");
-      Serial.println(concatenacion); 
     }
     //Convierte el numero en int 
     slider1_int = concatenacion.toInt();
@@ -180,48 +206,56 @@ void callback(char* topic, byte* payload, unsigned int length) {
    String s2 = "123";  
    for (int i = 0; i < length; i++){
       s2 = String((char)payload[i]) ; 
-      concatenacion_2 = concatenacion_2 + s2;  
-      Serial.print("String concatenación_2: ");
-      Serial.println(concatenacion_2); 
+      concatenacion_2 = concatenacion_2 + s2;   
     }
     slider2_int = concatenacion_2.toInt();
   }
-  /*Pritn*/
+
+  /*Print*/
   Serial.print("Slider2_int:");
   Serial.println(slider2_int);
   Serial.print("Slider1_int:"); 
   Serial.println(slider1_int); 
   /**/
+  
+  
     //Move righ
-  if (slider1_int > 50 && slider2_int > 50 ){
+  if (slider1_int > 50 && slider2_int > 60 ){
+    int inflarrojo = 0; 
     int sentido_izquierda = 0; 
     int sentido_derecha = move_righ();
     int velocidad1 = get_velocidad_adelante(slider1_int);   
-    tatakae(velocidad1, sentido_derecha, sentido_izquierda);
-  }  //Move left
+    tatakae(velocidad1, sentido_derecha, sentido_izquierda,inflarrojo);
+  } 
+  //Move left
   else if (slider1_int > 50 && slider2_int < 40){
+    int inflarrojo = 0; 
     int sentido_derecha = 0;     
     int sentido_izquierda = move_left();
     int velocidad1 = get_velocidad_adelante(slider1_int);  
-    tatakae(velocidad1, sentido_derecha,sentido_izquierda); 
-  } //Back and righ
-  else if (slider1_int < 40 && slider2_int > 50 ){
+    tatakae(velocidad1, sentido_derecha,sentido_izquierda,inflarrojo); 
+  }///Back  
+  //Back and righ
+  else if (slider1_int < 40 && slider2_int > 60 ){
     int sentido_izquierda = 0; 
     int sentido_derecha = move_righ(); 
     int velocidad1 = get_velocidad_back(slider1_int); 
     move_back(velocidad1, sentido_derecha, sentido_izquierda); 
-  }//Back and lefth
+  }
+  //Back and lefth
   else if ( slider1_int < 40 && slider2_int < 40 ) {
     int sentido_derecha = 0; 
     int sentido_izquierda = move_left(); 
     int velocidad1 = get_velocidad_back(slider1_int); 
     move_back(velocidad1, sentido_derecha, sentido_izquierda); 
     }
+
   else if(slider1_int < 40 ){
     move_back1(); 
   }
+  
   else{
-   move_forward(); 
+  move_forward(); 
   }
   
 }
@@ -265,14 +299,40 @@ void setup() {
   /*PWM*/
   pinMode(D2,OUTPUT); 
   pinMode(D5,OUTPUT);
+  pinMode(D8,INPUT); 
+  pinMode(D6,INPUT); 
+  pinMode(D7,INPUT); 
 }
 
 void loop() {
   if (!client.connected()) {
     reconnect();
-  }
-  client.loop();
+  } 
+  inflarrojo_Izq = digitalRead(inflarrojo_azul); 
+  inflarrojo_Der = digitalRead(inflarrojo_negro); 
+  //
+  // Serial.print("Inflarrojo azul: ");
+  // Serial.println(inflarrojo_Der); 
+  // Serial.print("Inflarrojo negro: ");
+  // Serial.println(inflarrojo_Izq);
 
+  if(inflarrojo_Der != 0){
+  int inflarrojo = 1; 
+  int sentido_derecha = 0; 
+  int sentido_izquierda = 255; 
+  int velocidad1 = 255; 
+  tatakae(velocidad1, sentido_derecha, sentido_izquierda,inflarrojo);  
+  } 
+  else if (inflarrojo_Izq != 0 ){
+    int inflarrojo = 1; 
+    int sentido_derecha = 255; 
+    int sentido_izquierda = 0; 
+    int velocidad1 = 255; 
+    tatakae(velocidad1, sentido_derecha, sentido_izquierda,inflarrojo);  
+  }
+  
+  //
+  client.loop();
   // unsigned long now = millis();
   // if (now - lastMsg > 2000) {
   //   lastMsg = now;

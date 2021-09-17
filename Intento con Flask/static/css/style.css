@@ -9,7 +9,7 @@ h2{
 
 .contenedor {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 33% 33% 33%;
     grid-template-rows: 290px;
     background-color:rgba(141, 139, 139, 0.993);
 }
@@ -21,16 +21,38 @@ h2{
    transform: rotate(270deg);
 }
 
+#Media_vuelta{
+    border: none;
+    background-color: coral;
+    font-size: 12px;
+    color: cornsilk;
+    border-radius: 10%;
+    padding: 10%;
+    margin-top: 75%;
+}
+
+#Un_cuarto{
+    float: right;
+    border: none;
+    font-size: 12px;
+    background-color: coral;
+    color: cornsilk;
+    border-radius: 10%;
+    padding: 10%;
+    margin-top: 75%;
+}
+
 #Righ_andleft{
     float: right;
-    width: 50%;
+    width: 70%;
     height: 250px;
-    margin: 1em;
+    margin: 2em;
  }
 
-
-
-div:hover{
+ div.Go:hover{
+    border: 1px solid #fff;
+}
+button:hover{
     border: 1px solid #fff;
 }
 

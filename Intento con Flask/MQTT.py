@@ -1,5 +1,6 @@
 from io import open
 from os import read
+from time import sleep
 import paho.mqtt.client as mqtt 
 
 '''MQTT:''' 
@@ -46,6 +47,8 @@ while True:
         if valor == sentido: 
             sentido["slider_2"] = read_valor_2()
             print(sentido) 
+    #
+    sleep(0.28)
     client.publish("Coche",velocidad["slider_1"])
     client.publish("Coche/Sentido",sentido["slider_2"])
     client.loop()
