@@ -50,6 +50,20 @@ int slider1_int = 50;
 int inflarrojo_Izq = 0;
 int inflarrojo_Der = 0; 
 
+void set_pin_back ( ){
+  digitalWrite(Left_IN1,HIGH);
+  digitalWrite(Left_IN2,LOW);
+  digitalWrite(RIGH_IN3,LOW);
+  digitalWrite(RIGH_IN4,HIGH);
+}
+
+void set_pin_go (){
+  digitalWrite(Left_IN1,LOW);
+  digitalWrite(Left_IN2,HIGH);
+  digitalWrite(RIGH_IN3,HIGH);
+  digitalWrite(RIGH_IN4,LOW);
+}
+
 int get_velocidad_adelante(int vel){
 int velocidad; 
 velocidad = (vel - 49.98038446449588 )/ 0.1961553550411926; 
@@ -75,10 +89,7 @@ int  get_sentido_adelante_izquierda(int slider2_int){
 }
 
 void move_back(int vel, int sentido_derecha, int sentido_izquierda){
-  digitalWrite(Left_IN1,HIGH);
-  digitalWrite(Left_IN2,LOW);
-  digitalWrite(RIGH_IN3,LOW);
-  digitalWrite(RIGH_IN4,HIGH);
+  set_pin_back(); 
   analogWrite(pwm1,vel - sentido_derecha);
   analogWrite(pwm2,vel - sentido_izquierda);
 }
@@ -91,38 +102,25 @@ void stop(){
 }
 
 void tatakae(int vel, int sentido_derecha, int sentido_izquierda, int inflarrojo){
-  if(inflarrojo == inflarrojo_Izq && inflarrojo == inflarrojo_Der ){
-    digitalWrite(Left_IN1,LOW);
-    digitalWrite(Left_IN2,HIGH);
-    digitalWrite(RIGH_IN3,HIGH);
-    digitalWrite(RIGH_IN4,LOW);
-    analogWrite(pwm1,vel - sentido_derecha);
-    analogWrite(pwm2,vel - sentido_izquierda);
-  } 
-  else if( inflarrojo == inflarrojo_Der && inflarrojo != inflarrojo_Izq){
-    digitalWrite(Left_IN1,LOW);
-    digitalWrite(Left_IN2,HIGH);
-    digitalWrite(RIGH_IN3,HIGH);
-    digitalWrite(RIGH_IN4,LOW);
-    analogWrite(pwm1,vel - sentido_derecha);
-    analogWrite(pwm2,vel - sentido_izquierda);
-  }
-  else if( inflarrojo == inflarrojo_Izq && inflarrojo != inflarrojo_Der){
-    digitalWrite(Left_IN1,LOW);
-    digitalWrite(Left_IN2,HIGH);
-    digitalWrite(RIGH_IN3,HIGH);
-    digitalWrite(RIGH_IN4,LOW);
-    analogWrite(pwm1,vel - sentido_derecha);
-    analogWrite(pwm2,vel - sentido_izquierda);
+  if (inflarrojo == inflarrojo_Izq && inflarrojo_Der == inflarrojo && inflarrojo == 1){
+    stop(); 
   }
   else{
-    int velocidad = 255; 
-    digitalWrite(Left_IN1,HIGH);
-    digitalWrite(Left_IN2,LOW);
-    digitalWrite(RIGH_IN3,LOW);
-    digitalWrite(RIGH_IN4,HIGH);
-    analogWrite(pwm1,velocidad);
-    analogWrite(pwm2,velocidad);
+      if(inflarrojo == inflarrojo_Izq && inflarrojo == inflarrojo_Der ){
+      set_pin_go(); 
+      analogWrite(pwm1,vel - sentido_derecha);
+      analogWrite(pwm2,vel - sentido_izquierda);
+    } 
+    else if( inflarrojo == inflarrojo_Der && inflarrojo != inflarrojo_Izq){
+      set_pin_go(); 
+      analogWrite(pwm1,vel - sentido_derecha);
+      analogWrite(pwm2,vel - sentido_izquierda);
+    }
+    else if( inflarrojo == inflarrojo_Izq && inflarrojo != inflarrojo_Der){
+      set_pin_go();
+      analogWrite(pwm1,vel - sentido_derecha);
+      analogWrite(pwm2,vel - sentido_izquierda);
+    }
   }
 }
 
