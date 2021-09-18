@@ -25,9 +25,9 @@
 
 // Update these with values suitable for your network.
 
-const char* ssid = "MEGACABLE-979F";
-const char* password = "8eAYgaeY";
-const char* mqtt_server = "192.168.100.32";
+const char* ssid = "Inventoteca_2G";
+const char* password = "science_7425";
+const char* mqtt_server = "192.168.1.161";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -45,6 +45,7 @@ int pwm2 = D5;
 int inflarrojo_azul = D7;  
 int inflarrojo_negro = D6;
 
+ int Vuelta180 = 0; 
 int slider2_int = 50; 
 int slider1_int = 50;  
 int inflarrojo_Izq = 0;
@@ -78,7 +79,7 @@ return velocidad ;
 
 int get_sentido_adelante_derecha(int slider2_int){
  int sentido_der = 0; 
- sentido_der = (slider2_int -59.9843075715967 )/ 0.1569242840329541; 
+ sentido_der = (slider2_int - 69.98823067869753 )/ 0.11769321302471557; 
  return sentido_der;
 }
 
@@ -101,29 +102,12 @@ void stop(){
   digitalWrite(RIGH_IN4,LOW);
 }
 
-void tatakae(int vel, int sentido_derecha, int sentido_izquierda, int inflarrojo){
-  if (inflarrojo == inflarrojo_Izq && inflarrojo_Der == inflarrojo && inflarrojo == 1){
-    stop(); 
-  }
-  else{
-      if(inflarrojo == inflarrojo_Izq && inflarrojo == inflarrojo_Der ){
-      set_pin_go(); 
-      analogWrite(pwm1,vel - sentido_derecha);
-      analogWrite(pwm2,vel - sentido_izquierda);
-    } 
-    else if( inflarrojo == inflarrojo_Der && inflarrojo != inflarrojo_Izq){
-      set_pin_go(); 
-      analogWrite(pwm1,vel - sentido_derecha);
-      analogWrite(pwm2,vel - sentido_izquierda);
-    }
-    else if( inflarrojo == inflarrojo_Izq && inflarrojo != inflarrojo_Der){
-      set_pin_go();
-      analogWrite(pwm1,vel - sentido_derecha);
-      analogWrite(pwm2,vel - sentido_izquierda);
-    }
-  }
+void tatakae(int vel, int sentido_derecha, int sentido_izquierda){
+    set_pin_go(); 
+    analogWrite(pwm1,vel - sentido_derecha);
+    analogWrite(pwm2,vel - sentido_izquierda);
 }
-
+  
 int move_righ(){
   int sentido_derecha = get_sentido_adelante_derecha(slider2_int);  
   Serial.print("Move righ"); 
@@ -137,11 +121,10 @@ int move_left(){
 }
 
 void move_forward(){
-    int inflarrojo = 0;
     int sentido_derecha = 0;
     int sentido_izquierda = 0; 
     int velocidad1 = get_velocidad_adelante(slider1_int);  
-    tatakae(velocidad1, sentido_derecha,sentido_izquierda,inflarrojo);  
+    tatakae(velocidad1, sentido_derecha,sentido_izquierda);  
     Serial.print("Move forward"); 
 }
 
@@ -179,14 +162,16 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
   for (int i = 0; i < length; i++) {
     Serial.println((char)payload[i]);
   }
+
   String topic_string = topic; 
+ 
+
 /*Se conveierte cada caracter a una cadena */
   if (topic_string == "Coche"){
    String  concatenacion = "";  // Inicialización de variables String
@@ -209,29 +194,30 @@ void callback(char* topic, byte* payload, unsigned int length) {
     slider2_int = concatenacion_2.toInt();
   }
 
+  
+  
   /*Print*/
+  Serial.print("Vuelta180: "); 
+  Serial.println(Vuelta180); 
   Serial.print("Slider2_int:");
   Serial.println(slider2_int);
   Serial.print("Slider1_int:"); 
   Serial.println(slider1_int); 
   /**/
-  
-  
+
     //Move righ
-  if (slider1_int > 50 && slider2_int > 60 ){
-    int inflarrojo = 0; 
+  if (slider1_int > 40 && slider2_int > 60 ){
     int sentido_izquierda = 0; 
     int sentido_derecha = move_righ();
     int velocidad1 = get_velocidad_adelante(slider1_int);   
-    tatakae(velocidad1, sentido_derecha, sentido_izquierda,inflarrojo);
+    tatakae(velocidad1, sentido_derecha, sentido_izquierda);
   } 
   //Move left
-  else if (slider1_int > 50 && slider2_int < 40){
-    int inflarrojo = 0; 
+  else if (slider1_int > 40 && slider2_int < 40){
     int sentido_derecha = 0;     
     int sentido_izquierda = move_left();
     int velocidad1 = get_velocidad_adelante(slider1_int);  
-    tatakae(velocidad1, sentido_derecha,sentido_izquierda,inflarrojo); 
+    tatakae(velocidad1, sentido_derecha,sentido_izquierda); 
   }///Back  
   //Back and righ
   else if (slider1_int < 40 && slider2_int > 60 ){
@@ -246,18 +232,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
     int sentido_izquierda = move_left(); 
     int velocidad1 = get_velocidad_back(slider1_int); 
     move_back(velocidad1, sentido_derecha, sentido_izquierda); 
-    }
-
+  }
   else if(slider1_int < 40 ){
     move_back1(); 
   }
-  
-  else{
+  else if(slider1_int > 40){
   move_forward(); 
-  }
+  } 
+
   
 }
-
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
@@ -308,28 +292,13 @@ void loop() {
   } 
   inflarrojo_Izq = digitalRead(inflarrojo_azul); 
   inflarrojo_Der = digitalRead(inflarrojo_negro); 
-  //
-  // Serial.print("Inflarrojo azul: ");
-  // Serial.println(inflarrojo_Der); 
-  // Serial.print("Inflarrojo negro: ");
-  // Serial.println(inflarrojo_Izq);
-
-  if(inflarrojo_Der != 0){
-  int inflarrojo = 1; 
-  int sentido_derecha = 0; 
-  int sentido_izquierda = 255; 
-  int velocidad1 = 255; 
-  tatakae(velocidad1, sentido_derecha, sentido_izquierda,inflarrojo);  
-  } 
-  else if (inflarrojo_Izq != 0 ){
-    int inflarrojo = 1; 
-    int sentido_derecha = 255; 
-    int sentido_izquierda = 0; 
-    int velocidad1 = 255; 
-    tatakae(velocidad1, sentido_derecha, sentido_izquierda,inflarrojo);  
-  }
   
-  //
+  if(  inflarrojo_Izq != 0){
+  set_pin_back(); 
+  analogWrite(pwm1,255);
+  analogWrite(pwm2,255);
+  } 
+
   client.loop();
   // unsigned long now = millis();
   // if (now - lastMsg > 2000) {

@@ -16,8 +16,14 @@
             <input type="range" id="go"> 
         </div> 
         <div class="Button">
-            <input type="button" id = "Media_vuelta">          
-            <button id = "Un_cuarto">»</button>
+            <form action="/Media_vuelta" method="POST">
+                <input type="submit" value="90" id = "Media_vuelta" name="Media_vuelta"> 
+            </form> 
+            <div >    
+                <form action="/Vuelta" method="POST">
+                    <input type="submit" value="180" id = "Vuelta" name="Vuelta">
+                </form>
+            </div>    
         </div>
         <div class="Posicion">
             <input type="range" id = "Righ_andleft">
